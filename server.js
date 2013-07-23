@@ -8,27 +8,27 @@ http.createServer(function (req, res) {
   total++;
   live++;
 
-  setTimeout(function() {
+  res.writeHead(Math.random() < 0.05 ? 403 : 200);
 
-    res.writeHead(200);
+  var data = {
+    method: req.method,
+    url: req.url,
+    body: "",
+    headers: req.headers,
+    meta: {
+      total: total,
+      live: live
+    }
+  };
 
-    var data = {
-      method: req.method,
-      url: req.url,
-      body: ""
-    };
+  req.on('data', function(buffer) {
+    data.body += buffer.toString();
+  });
 
-    req.on('data', function(buffer) {
-      data.body += buffer.toString();
-    });
-
-    req.on('end', function() {
-      res.end(JSON.stringify(data, null, 2));
-      live--;
-      console.log(live, total);
-    });
-
-  }, 100+Math.floor(Math.random()*50));
+  req.on('end', function() {
+    res.end(JSON.stringify(data, null, 2));
+    live--;
+  });
 
 }).listen(process.env.PORT || 3000, function() {
   console.log("listening...");
