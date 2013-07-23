@@ -11,6 +11,7 @@ http.createServer(function (req, res) {
   res.writeHead(Math.random() < 0.05 ? 403 : 200);
 
   var data = {
+    ip: req.connection.remoteAddress,
     method: req.method,
     url: req.url,
     body: "",
