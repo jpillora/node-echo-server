@@ -1,6 +1,7 @@
 
 
 var http = require("http");
+var port = process.env.PORT || 3000;
 var total = 0;
 var live = 0;
 
@@ -31,6 +32,6 @@ http.createServer(function (req, res) {
     live--;
   });
 
-}).listen(process.env.PORT || 3000, function() {
-  console.log("listening...");
+}).listen(port, function() {
+  console.log("listening on "+port+"...");
 });
