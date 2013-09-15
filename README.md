@@ -16,6 +16,8 @@ npm install -g echo-server
 * Add heroku remote
 * Push
 
+Currently running at http://echo.jpillora.com
+
 ## Example
 
 Start server
