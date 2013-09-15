@@ -4,11 +4,59 @@
 
 <description>An HTTP which responds with the request in JSON</end>
 
-## Usage
+## Private Usage
+
+```
+npm install -g echo-server
+```
+
+## Public Usage
 
 * Git clone
 * Add heroku remote
 * Push
+
+## Example
+
+Start server
+```
+$ echo-server 5000
+listening on 5000...
+```
+
+Make your requests
+```
+$ curl http://localhost:5000/foo/bar
+{
+  "ip": "127.0.0.1",
+  "method": "GET",
+  "url": "/foo/bar",
+  "body": "",
+  "headers": {
+    "user-agent": "curl/7.21.4 (universal-apple-darwin11.0) libcurl/7.21.4 OpenSSL/0.9.8x zlib/1.2.5",
+    "host": "localhost:5000",
+    "accept": "*/*"
+  },
+  "meta": {
+    "total": 1,
+    "live": 1
+  }
+}
+```
+
+## Simulate delays
+
+Include `/delay/<time in ms>` in the url
+
+## Simulate non-200 status codes
+
+Include `/status/<status code>` in the url
+
+## Meta data
+
+`total` number of requests sent to the server
+
+`live` number of requests currently open on the server
 
 <license()>
 #### MIT License

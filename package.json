@@ -1,8 +1,11 @@
 {
-  "name": "node-echo-server",
-  "version": "0.1.0",
+  "name": "echo-server",
+  "version": "0.1.3",
   "description": "An HTTP server which responds with the request in JSON",
   "main": "server.js",
+  "bin": {
+    "echo-server": "cli.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
