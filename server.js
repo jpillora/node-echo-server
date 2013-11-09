@@ -17,20 +17,19 @@ http.createServer(function (req, res) {
     delay = parseInt(RegExp.$1, 10);
 
   if(/^\/get-echo\/(\d+)$/.test(req.url)) {
-    
     res.writeHead(200, {'Content-Type':'application/json'});
-    res.end(JSON.stringify(datas[RegExp.$2], null, 2));
+    res.end(JSON.stringify(datas[RegExp.$1], null, 2));
     return;
+  }
   
-  } else if(/^\/proxy\.html(\?src=(.+))?$/.test(req.url)) {
+  if(/^\/proxy\.html(\?src=(.+))?$/.test(req.url)) {
     res.writeHead(200, {'Content-Type':'text/html'});
     res.end('<!DOCTYPE HTML>\n'+
             '<script src="'+(RegExp.$2 || 'http://jpillora.com/xdomain/dist/0.5/xdomain.js')+'" master="*"></script>');
     return;
-  } else {
-    res.writeHead(status, {'Content-Type':'application/json'});
   }
-
+  
+  res.writeHead(status, {'Content-Type':'application/json'});
   total++;
   live++;
   
