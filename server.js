@@ -26,12 +26,13 @@ http.createServer(function (req, res) {
   if(/^\/proxy\.html(\?src=(.+))?$/.test(req.url)) {
     res.writeHead(200, {'Content-Type':'text/html'});
     res.end('<!DOCTYPE HTML>\n'+
-            '<script src="'+(RegExp.$2 || 'http://jpillora.com/xdomain/dist/0.5/xdomain.js')+'" master="*"></script>');
+            '<script src="'+(RegExp.$2 || 'http://jpillora.com/xdomain/dist/0.6/xdomain.js')+'" master="*"></script>');
     return;
   }
   
-  var origin = req.headers['origin'] ||
-    /(^https?:\/\/[^\/]+)/.test(req.headers['referer']) ? RegExp.$1 : '*';
+  var origin = req.headers['origin'];
+  if(!origin)
+    origin = /(^https?:\/\/[^\/]+)/.test(req.headers['referer']) ? RegExp.$1 : '*';
 
   res.writeHead(status, {
     'content-type':'application/json',
@@ -71,5 +72,5 @@ http.createServer(function (req, res) {
   });
 
 }).listen(port, function() {
-  console.log("listening on "+port+" !!");
+  console.log("listening on "+port+"...");
 });
