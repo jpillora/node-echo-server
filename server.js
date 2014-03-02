@@ -30,11 +30,14 @@ http.createServer(function (req, res) {
     return;
   }
   
+  var origin = req.headers['origin'] ||
+    /(^https?:\/\/[^\/]+)/.test(req.headers['referer']) ? RegExp.$1 : '*';
+
   res.writeHead(status, {
     'content-type':'application/json',
     'echo-server-version': pkg.version,
     'access-control-allow-credentials':true,
-    'access-control-allow-origin':'*',
+    'access-control-allow-origin': origin,
     'access-control-max-age':0,
     'cache-control':'no-cache'
   });

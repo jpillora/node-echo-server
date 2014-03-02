@@ -1,6 +1,6 @@
 {
   "name": "echo-server",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "An HTTP server which responds with the request in JSON",
   "main": "server.js",
   "bin": {
