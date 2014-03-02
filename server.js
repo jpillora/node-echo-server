@@ -1,3 +1,4 @@
+var pkg = require("./package.json");
 var http = require("http");
 var port = process.env.PORT || parseInt(process.argv[2], 10) || 4000;
 var datas = [];
@@ -29,7 +30,14 @@ http.createServer(function (req, res) {
     return;
   }
   
-  res.writeHead(status, {'Content-Type':'application/json'});
+  res.writeHead(status, {
+    'content-type':'application/json',
+    'echo-server-version': pkg.version,
+    'access-control-allow-credentials':true,
+    'access-control-allow-origin':'*',
+    'access-control-max-age':0,
+    'cache-control':'no-cache'
+  });
   total++;
   live++;
   
