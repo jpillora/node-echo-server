@@ -1,13 +1,10 @@
 {
   "name": "echo-server",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "An HTTP server which responds with the request in JSON",
   "main": "server.js",
   "bin": {
     "echo-server": "cli.js"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",

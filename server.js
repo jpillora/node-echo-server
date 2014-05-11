@@ -1,13 +1,58 @@
 var pkg = require("./package.json");
 var http = require("http");
 var port = process.env.PORT || parseInt(process.argv[2], 10) || 4000;
-var datas = [];
+var echos = [];
 var total = 0;
 var live = 0;
 
+
+var getEcho = function(id, res) {
+  res.writeHead(200, {'Content-Type':'application/json'});
+  res.end(JSON.stringify(echos[id], null, 2));
+};
+
+var getEchos = function(res) {
+  res.writeHead(200, {'Content-Type':'application/json'});
+  var ips = {};
+  var methods = {};
+  var stats = {
+    totalLength: 0,
+    methods:methods,
+    ips:ips
+  };
+  echos.forEach(function(echo, i) {
+    if(!ips[echo.ip]) {
+      ips[echo.ip] = [];
+    }
+    ips[echo.ip].push(i);
+    if(!methods[echo.method]) {
+      methods[echo.method] = 0;
+    }
+    methods[echo.method]++;
+    stats.totalLength += parseInt(echo.headers['content-length'],10) || 0;
+  });
+  res.end(JSON.stringify(stats), null, 2);
+};
+
+var getProxy = function(xdomain, res) {
+  res.writeHead(200, {'Content-Type':'text/html'});
+  res.end('<!DOCTYPE HTML>\n'+
+          '<script src="'+(xdomain || '//rawgit.com/jpillora/xdomain/gh-pages/dist/0.6/xdomain.js')+'" master="*"></script>');
+};
+
 http.createServer(function (req, res) {
 
-  var ip = req.connection.remoteAddress;
+  //metas
+  if(/^\/echo\/(\d+)\/?$/.test(req.url)) {
+    return getEcho(RegExp.$1, res);
+  } else if(/^\/echoes\/?$/.test(req.url)) {
+    return getEchos(res);
+  } else if(/^\/proxy\.html(\?src=(.+))?$/.test(req.url)) {
+    return getProxy(RegExp.$2, res);
+  }
+
+  //do echo
+  var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
   var status = 200;
   if(/\/status\/(\d{3})/.test(req.url))
@@ -16,37 +61,39 @@ http.createServer(function (req, res) {
   var delay = 0;
   if(/\/delay\/(\d{1,5})/.test(req.url))
     delay = parseInt(RegExp.$1, 10);
-
-  if(/^\/get-echo\/(\d+)$/.test(req.url)) {
-    res.writeHead(200, {'Content-Type':'application/json'});
-    res.end(JSON.stringify(datas[RegExp.$1], null, 2));
-    return;
-  }
   
-  if(/^\/proxy\.html(\?src=(.+))?$/.test(req.url)) {
-    res.writeHead(200, {'Content-Type':'text/html'});
-    res.end('<!DOCTYPE HTML>\n'+
-            '<script src="'+(RegExp.$2 || 'http://jpillora.com/xdomain/dist/0.6/xdomain.js')+'" master="*"></script>');
-    return;
-  }
-  
-  var origin = req.headers['origin'];
-  if(!origin)
-    origin = /(^https?:\/\/[^\/]+)/.test(req.headers['referer']) ? RegExp.$1 : '*';
+  var host = 'http://'+req.headers['host'];
+  var referer = /^(https?:\/\/[^\/]+)/.test(req.headers['referer']) ? RegExp.$1 : '*';
 
-  res.writeHead(status, {
+  var headers = {
     'content-type':'application/json',
     'echo-server-version': pkg.version,
-    'access-control-allow-credentials':true,
-    'access-control-allow-origin': origin,
-    'access-control-max-age':0,
     'cache-control':'no-cache'
-  });
+  };
+
+  //apply cors when needed
+  if(host !== referer) {
+    headers['access-control-allow-credentials'] = true;
+    headers['access-control-allow-origin'] = referer;
+    if(req.headers['access-control-request-method'])
+      headers['access-control-allow-methods'] = req.headers['access-control-request-method'];
+    if(req.headers['access-control-request-headers'])
+      headers['access-control-allow-headers'] = req.headers['access-control-request-headers'];
+    headers['access-control-max-age'] = 0;
+  }
+
+  res.writeHead(status, headers);
   total++;
   live++;
   
+  //wipe heroku headers
+  for(var k in req.headers)
+    if(/^x-/.test(k))
+      delete req.headers[k];
+
   var data = {
     ip: ip,
+    time: Date.now(),
     method: req.method,
     url: req.url,
     body: "",
@@ -64,7 +111,7 @@ http.createServer(function (req, res) {
   });
 
   req.on('end', function() {
-    datas.push(data);
+    echos.push(data);
     setTimeout(function() {
       res.end(JSON.stringify(data, null, 2));
       live--;
