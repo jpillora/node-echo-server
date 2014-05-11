@@ -42,7 +42,7 @@ var getProxy = function(xdomain, res) {
 
 http.createServer(function (req, res) {
 
-  //metas
+  //special actions
   if(/^\/echo\/(\d+)\/?$/.test(req.url)) {
     return getEcho(RegExp.$1, res);
   } else if(/^\/echoes\/?$/.test(req.url)) {
@@ -64,7 +64,6 @@ http.createServer(function (req, res) {
   
   var host = 'http://'+req.headers['host'];
   var referer = /^(https?:\/\/[^\/]+)/.test(req.headers['referer']) ? RegExp.$1 : '*';
-
   var headers = {
     'content-type':'application/json',
     'echo-server-version': pkg.version,
@@ -82,7 +81,6 @@ http.createServer(function (req, res) {
     headers['access-control-max-age'] = 0;
   }
 
-  res.writeHead(status, headers);
   total++;
   live++;
   
@@ -106,16 +104,42 @@ http.createServer(function (req, res) {
     }
   };
 
+  echos.push(data);
+
   req.on('data', function(buffer) {
     data.body += buffer.toString();
   });
 
   req.on('end', function() {
-    echos.push(data);
-    setTimeout(function() {
-      res.end(JSON.stringify(data, null, 2));
+    var buff = new Buffer(JSON.stringify(data, null, 2));    
+    var length = buff.length;
+    headers['content-length'] = length;
+    //write header
+    res.writeHead(status, headers);
+    
+    function end(buff) {
+      if(buff)
+        res.write(buff);
+      res.end();
       live--;
-    }, delay);
+    }
+
+    //write all now
+    if(delay === 0)
+      return end(buff);
+    
+    //with delay, write out 10 chunks over 10 time intervals
+    var d = Math.ceil(delay/10);
+    var l = Math.ceil(length/10);
+
+    (function send() {
+      var b = buff.slice(0, l);
+      if(b.length === 0)
+        return end();
+      res.write(b);
+      buff = buff.slice(l);
+      setTimeout(send, d);
+    }());
   });
 
 }).listen(port, function() {
