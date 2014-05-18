@@ -24,7 +24,7 @@ var getEchos = function(res) {
   };
   echoes.forEach(function(echo) {
 
-    var id = echo.ip || echo.domains;
+    var id = echo.domains || echo.ip;
 
     if(!ips[id]) ips[id] = [];
     ips[id].push(echo.meta.num);
