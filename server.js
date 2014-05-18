@@ -1,14 +1,14 @@
 var pkg = require("./package.json");
 var http = require("http");
+var dns = require("dns");
 var port = process.env.PORT || parseInt(process.argv[2], 10) || 4000;
-var echos = [];
+var echoes = [];
 var total = 0;
 var live = 0;
 
-
 var getEcho = function(id, res) {
   res.writeHead(200, {'Content-Type':'application/json'});
-  res.end(JSON.stringify(echos[id], null, 2));
+  res.end(JSON.stringify(echoes[id], null, 2));
 };
 
 var getEchos = function(res) {
@@ -16,21 +16,49 @@ var getEchos = function(res) {
   var ips = {};
   var methods = {};
   var stats = {
+    live: live,
+    total: total,
     totalLength: 0,
     methods:methods,
     ips:ips
   };
-  echos.forEach(function(echo, i) {
-    if(!ips[echo.ip]) {
-      ips[echo.ip] = [];
-    }
-    ips[echo.ip].push(i);
-    if(!methods[echo.method]) {
-      methods[echo.method] = 0;
-    }
+  echoes.forEach(function(echo) {
+
+    var id = echo.ip || echo.domains;
+
+    if(!ips[id]) ips[id] = [];
+    ips[id].push(echo.meta.num);
+
+    if(!methods[echo.method]) methods[echo.method] = 0;
     methods[echo.method]++;
+
     stats.totalLength += parseInt(echo.headers['content-length'],10) || 0;
   });
+
+  //compress id lists
+  for(var id in ips) {
+    var range = null;
+    ips[id] = ips[id].reduce(function(nums, num, i, arr) {
+
+      var lastIndex = arr.length-1;
+      var hasNext = i+1 <= lastIndex;
+      var increments = hasNext && arr[i+1] === num+1;
+
+      if(hasNext && increments) {
+        if(!range)
+          range = [num];
+        return nums;
+      } else if(range) {
+        range.push(num);
+        nums.push(range);
+        range = null;
+        return nums;
+      }
+      nums.push(num);
+      return nums;
+    }, []);
+  }
+
   res.end(JSON.stringify(stats), null, 2);
 };
 
@@ -43,7 +71,9 @@ var getProxy = function(xdomain, res) {
 http.createServer(function (req, res) {
 
   //special actions
-  if(/^\/echo\/(\d+)\/?$/.test(req.url)) {
+  if(req.url === '/favicon.ico') {
+    return res.end();
+  } else if(/^\/echo\/(\d+)\/?$/.test(req.url)) {
     return getEcho(RegExp.$1, res);
   } else if(/^\/echoes\/?$/.test(req.url)) {
     return getEchos(res);
@@ -52,6 +82,7 @@ http.createServer(function (req, res) {
   }
 
   //do echo
+  var num = echoes.length;
   var ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
   var status = 200;
@@ -91,26 +122,31 @@ http.createServer(function (req, res) {
 
   var data = {
     ip: ip,
+    domains: null, //unset
     time: Date.now(),
     method: req.method,
     url: req.url,
     body: "",
     headers: req.headers,
     meta: {
-      total: total,
+      num: num,
       live: live,
       status: status,
       delay: delay
     }
   };
 
-  echos.push(data);
+  echoes.push(data);
 
   req.on('data', function(buffer) {
     data.body += buffer.toString();
   });
 
-  req.on('end', function() {
+  var send = function() {
+    //send after has domains AND request ended
+    if(data.domains === null || !req.ended)
+      return;
+
     var buff = new Buffer(JSON.stringify(data, null, 2));    
     var length = buff.length;
     headers['content-length'] = length;
@@ -132,16 +168,31 @@ http.createServer(function (req, res) {
     var d = Math.ceil(delay/10);
     var l = Math.ceil(length/10);
 
-    (function send() {
+    (function sendChunk() {
       var b = buff.slice(0, l);
       if(b.length === 0)
         return end();
       res.write(b);
       buff = buff.slice(l);
-      setTimeout(send, d);
+      setTimeout(sendChunk, d);
     }());
+  };
+
+  dns.reverse(ip, function(err, domains) {
+    data.domains =
+      domains ?
+        domains.length === 1 ? domains[0] : 
+        domains.length >=  2 ? domains : undefined
+      : undefined;
+    send();
   });
 
-}).listen(port, function() {
+  req.on('end', function() {
+    req.ended = true;
+    send();
+  });
+
+
+}).listen(port, "0.0.0.0", function() {
   console.log("listening on "+port+"...");
 });
