@@ -60,6 +60,10 @@ Include `/status/<status code>` in the url
 
 `live` number of requests currently open on the server
 
+# Stores metrics in MongoDB
+
+Just set your `MONGOLAB_URI` env var and it will start storing `echo` documents
+
 <license()>
 #### MIT License
 

@@ -1,4 +1,5 @@
 var pkg = require("./package.json");
+var metrics = require("./metrics");
 var http = require("http");
 var dns = require("dns");
 var port = process.env.PORT || parseInt(process.argv[2], 10) || 4000;
@@ -136,6 +137,13 @@ http.createServer(function (req, res) {
     }
   };
 
+  //process (if able)
+  metrics.process(data);
+
+  //echoes fall off the front
+  if(echoes.length >= 100)
+    echoes.unshift();
+  //push onto the back
   echoes.push(data);
 
   req.on('data', function(buffer) {

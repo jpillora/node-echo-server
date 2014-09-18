@@ -1,6 +1,6 @@
 {
   "name": "echo-server",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An HTTP server which responds with the request in JSON",
   "main": "server.js",
   "bin": {
@@ -15,5 +15,8 @@
   "gruntSource": {
     "source": "~/.grunt-sources/node",
     "repo": "https://github.com/jpillora/grunt-source-node.git"
+  },
+  "dependencies": {
+    "mongoose": "^3.8.16"
   }
 }
