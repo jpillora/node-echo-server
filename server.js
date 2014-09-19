@@ -74,9 +74,11 @@ http.createServer(function (req, res) {
   //special actions
   if(req.url === '/favicon.ico') {
     return res.end();
-  } else if(/^\/echo\/(\d+)\/?$/.test(req.url)) {
+  } else if(/^\/echo\/(\d+)\/?/.test(req.url)) {
     return getEcho(RegExp.$1, res);
-  } else if(/^\/echoes\/?$/.test(req.url)) {
+  } else if(/^\/echoes-request/.test(req.url)) {
+    return metrics.fetch(req, res);
+  } else if(/^\/echoes/.test(req.url)) {
     return getEchos(res);
   } else if(/^\/proxy\.html(\?src=(.+))?$/.test(req.url)) {
     return getProxy(RegExp.$2, res);
@@ -137,9 +139,6 @@ http.createServer(function (req, res) {
     }
   };
 
-  //process (if able)
-  metrics.process(data);
-
   //echoes fall off the front
   if(echoes.length >= 100)
     echoes.unshift();
@@ -154,6 +153,9 @@ http.createServer(function (req, res) {
     //send after has domains AND request ended
     if(data.domains === null || !req.ended)
       return;
+
+    //process (if able)
+    metrics.process(data);
 
     var buff = new Buffer(JSON.stringify(data, null, 2));    
     var length = buff.length;
@@ -199,7 +201,6 @@ http.createServer(function (req, res) {
     req.ended = true;
     send();
   });
-
 
 }).listen(port, "0.0.0.0", function() {
   console.log("listening on "+port+"...");
