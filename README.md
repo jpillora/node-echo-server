@@ -46,6 +46,12 @@ $ curl http://localhost:5000/foo/bar
 }
 ```
 
+## Command line arguments
+
+```
+  --verbose         log request data to the console
+```
+
 ## Simulate delays
 
 Include `/delay/<time in ms>` in the url

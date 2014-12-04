@@ -2,7 +2,8 @@ var pkg = require("./package.json");
 var metrics = require("./metrics");
 var http = require("http");
 var dns = require("dns");
-var port = process.env.PORT || parseInt(process.argv[2], 10) || 4000;
+var argv = require('minimist')(process.argv.slice(2));
+var port = process.env.PORT || argv._[0] || 4000;
 var echoes = [];
 var total = 0;
 var live = 0;
@@ -126,6 +127,11 @@ http.createServer(function(req, res) {
 	if (echoes.length >= 100) echoes.unshift();
 	//push onto the back
 	echoes.push(data);
+
+	if (argv.verbose) {
+		console.log(data);
+	}
+
 	req.on('data', function(buffer) {
 		data.body += buffer.toString();
 	});
