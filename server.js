@@ -127,11 +127,7 @@ http.createServer(function(req, res) {
 	if (echoes.length >= 100) echoes.unshift();
 	//push onto the back
 	echoes.push(data);
-
-	if (argv.verbose) {
-		console.log(data);
-	}
-
+	if (argv.verbose) console.log(data);
 	req.on('data', function(buffer) {
 		data.body += buffer.toString();
 	});
