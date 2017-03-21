@@ -1,3 +1,7 @@
+:warning: This project is no longer being maintained. It has been rewritten in Go (https://github.com/jpillora/go-echo-server) and supports similar features.
+
+---
+
 # <name>node-echo-server</end>
 
 ## Summary
@@ -64,7 +68,6 @@ Include `/status/<status code>` in the url
 
 Just set your `MONGOLAB_URI` env var and it will start storing `echo` documents
 
-<license()>
 #### MIT License
 
 Copyright &copy; 2013 Jaime Pillora &lt;dev@jpillora.com&gt;
@@ -87,4 +90,3 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-</end>
