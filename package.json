@@ -17,6 +17,7 @@
     "repo": "https://github.com/jpillora/grunt-source-node.git"
   },
   "dependencies": {
-    "mongoose": "^3.8.16"
+    "mongoose": "^3.8.16",
+    "minimist": "^1.1.0"
   }
 }
